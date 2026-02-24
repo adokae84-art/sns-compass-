@@ -7,7 +7,7 @@ import re
 app = Flask(__name__)
 
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
-model = genai.GenerativeModel("gemini-2.0-flash-exp")
+model = genai.GenerativeModel("gemini-2.0-flash-lite")
 
 @app.route("/")
 def index():
