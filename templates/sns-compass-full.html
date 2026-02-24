@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SNSコンパス — 発信軸診断 + プロンプト集</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700;900&family=Bebas+Neue&family=Noto+Serif+JP:wght@300;400;600&display=swap');
+
+  :root {
+    --ink: #0f0e0d;
+    --paper: #f5f0e8;
+    --accent: #c8402a;
+    --gold: #b8965a;
+    --muted: #7a7060;
+    --light: #e8e0d0;
+    --dark: #1a1612;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events:none; z-index:999; opacity:.4;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height:100vh; display:flex; flex-direction:column;
+    justify-content:center; align-items:center;
+    padding:60px 24px; text-align:center;
+    background:var(--dark); overflow:hidden; position:relative;
+  }
+  .hero::before {
+    content:''; position:absolute;
+    width:600px; height:600px;
+    background:radial-gradient(circle,rgba(200,64,42,.15) 0%,transparent 70%);
+    top:50%; left:50%; transform:translate(-50%,-50%);
+    animation:pulse 6s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.6}50%{transform:translate(-50%,-50%) scale(1.2);opacity:1}}
+
+  .compass-ring {
+    width:120px; height:120px; border:2px solid var(--gold);
+    border-radius:50%; display:flex; align-items:center; justify-content:center;
+    margin:0 auto 32px; animation:spin 20s linear infinite;
+  }
+  @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  .compass-ring::before { content:'◈'; font-size:40px; color:var(--accent); animation:spin 20s linear infinite reverse; }
+
+  .hero-label { font-family:'Bebas Neue',sans-serif; font-size:13px; letter-spacing:.4em; color:var(--gold); margin-bottom:16px; }
+  .hero h1 { font-family:'Noto Serif JP',serif; font-size:clamp(36px,7vw,72px); font-weight:600; color:var(--paper); line-height:1.2; margin-bottom:24px; }
+  .hero h1 em { font-style:normal; color:var(--accent); }
+  .hero p { font-size:15px; color:rgba(245,240,232,.6); max-width:480px; line-height:1.9; margin-bottom:48px; font-weight:300; }
+
+  .btn-start {
+    background:var(--accent); color:white; border:none; padding:18px 48px;
+    font-family:'Zen Kaku Gothic New',sans-serif; font-size:16px; font-weight:700;
+    letter-spacing:.1em; cursor:pointer;
+    clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));
+    transition:all .3s;
+  }
+  .btn-start:hover { background:#e04f37; transform:translateY(-2px); box-shadow:0 8px 32px rgba(200,64,42,.4); }
+
+  /* ── APP ── */
+  #app { display:none; min-height:100vh; background:var(--paper); }
+
+  .app-header {
+    background:var(--dark); padding:16px 24px;
+    display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:100;
+    border-bottom:1px solid rgba(184,150,90,.3);
+  }
+  .app-logo { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:.15em; color:var(--gold); }
+  .progress-bar { flex:1; max-width:300px; height:3px; background:rgba(255,255,255,.1); margin:0 24px; border-radius:2px; overflow:hidden; }
+  .progress-fill { height:100%; background:var(--accent); border-radius:2px; transition:width .5s ease; }
+  .step-counter { font-size:12px; color:rgba(245,240,232,.5); letter-spacing:.1em; min-width:60px; text-align:right; }
+
+  .question-section {
+    max-width:640px; margin:0 auto; padding:60px 24px;
+    min-height:calc(100vh - 60px);
+    display:flex; flex-direction:column; justify-content:center;
+    animation:fadeInUp .4s ease;
+  }
+  @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+
+  .q-category { font-family:'Bebas Neue',sans-serif; font-size:11px; letter-spacing:.5em; color:var(--accent); margin-bottom:16px; }
+  .q-title { font-family:'Noto Serif JP',serif; font-size:clamp(22px,4vw,32px); font-weight:400; line-height:1.6; margin-bottom:12px; }
+  .q-hint { font-size:13px; color:var(--muted); margin-bottom:36px; line-height:1.7; font-weight:300; }
+
+  .choices { display:grid; gap:12px; margin-bottom:32px; }
+  .choice-btn {
+    background:white; border:1.5px solid var(--light); border-radius:4px;
+    padding:16px 20px; text-align:left; cursor:pointer;
+    font-family:'Zen Kaku Gothic New',sans-serif; font-size:14px; color:var(--ink);
+    transition:all .2s; position:relative; overflow:hidden;
+    display:flex; align-items:center; gap:12px;
+  }
+  .choice-btn .ci { font-size:20px; flex-shrink:0; }
+  .choice-btn .ct { flex:1; }
+  .choice-btn .cs { font-size:11px; color:var(--muted); margin-top:3px; line-height:1.4; }
+  .choice-btn::before { content:''; position:absolute; left:0;top:0;bottom:0; width:3px; background:var(--accent); transform:scaleY(0); transition:transform .2s; }
+  .choice-btn:hover { border-color:var(--accent); background:rgba(200,64,42,.03); }
+  .choice-btn:hover::before, .choice-btn.selected::before { transform:scaleY(1); }
+  .choice-btn.selected { border-color:var(--accent); background:rgba(200,64,42,.06); }
+
+  .text-input {
+    width:100%; background:white; border:1.5px solid var(--light); border-radius:4px;
+    padding:20px; font-family:'Zen Kaku Gothic New',sans-serif; font-size:15px;
+    color:var(--ink); resize:none; transition:border-color .2s; outline:none;
+    margin-bottom:32px; line-height:1.8;
+  }
+  .text-input:focus { border-color:var(--accent); }
+  .text-input::placeholder { color:var(--light); }
+
+  .slider-section { margin-bottom:32px; }
+  .slider-labels { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-bottom:12px; }
+  input[type=range] { width:100%; -webkit-appearance:none; height:4px; background:var(--light); border-radius:2px; outline:none; margin-bottom:8px; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:var(--accent); cursor:pointer; box-shadow:0 2px 8px rgba(200,64,42,.4); }
+  .slider-value { text-align:center; font-size:24px; font-weight:700; color:var(--accent); font-family:'Bebas Neue',sans-serif; letter-spacing:.1em; }
+
+  .nav-btns { display:flex; gap:12px; align-items:center; }
+  .btn-next {
+    background:var(--ink); color:var(--paper); border:none; padding:14px 36px;
+    font-family:'Zen Kaku Gothic New',sans-serif; font-size:14px; font-weight:700; letter-spacing:.1em; cursor:pointer;
+    clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));
+    transition:all .2s;
+  }
+  .btn-next:hover { background:var(--accent); transform:translateY(-1px); }
+  .btn-back { background:transparent; border:none; color:var(--muted); font-size:13px; cursor:pointer; padding:14px 0; font-family:'Zen Kaku Gothic New',sans-serif; transition:color .2s; }
+  .btn-back:hover { color:var(--ink); }
+
+  /* ── LOADING ── */
+  #loading { display:none; min-height:100vh; background:var(--dark); align-items:center; justify-content:center; flex-direction:column; gap:32px; }
+  .loading-ring { width:80px; height:80px; border:2px solid rgba(184,150,90,.2); border-top-color:var(--gold); border-radius:50%; animation:spin 1s linear infinite; }
+  .loading-text { font-family:'Noto Serif JP',serif; color:rgba(245,240,232,.6); font-size:15px; font-weight:300; text-align:center; }
+  .loading-step { font-size:13px; color:rgba(245,240,232,.3); transition:color .5s; }
+  .loading-step.active { color:var(--gold); }
+  .loading-step.done { color:rgba(245,240,232,.5); }
+
+  /* ── RESULT ── */
+  #result { display:none; background:var(--paper); }
+
+  .result-hero { background:var(--dark); padding:60px 24px; text-align:center; position:relative; overflow:hidden; }
+  .result-hero::before { content:''; position:absolute; width:400px;height:400px; background:radial-gradient(circle,rgba(200,64,42,.12) 0%,transparent 70%); top:50%;left:50%; transform:translate(-50%,-50%); }
+  .result-tag { display:inline-block; font-family:'Bebas Neue',sans-serif; font-size:11px; letter-spacing:.5em; color:var(--gold); border:1px solid rgba(184,150,90,.4); padding:6px 16px; margin-bottom:32px; }
+  .result-hero h2 { font-family:'Noto Serif JP',serif; font-size:clamp(24px,5vw,48px); font-weight:600; color:var(--paper); line-height:1.4; max-width:700px; margin:0 auto 24px; }
+  .result-hero h2 em { font-style:normal; color:var(--accent); }
+  .result-tagline { font-size:15px; color:rgba(245,240,232,.5); font-weight:300; max-width:500px; margin:0 auto; line-height:1.9; }
+
+  .result-body { max-width:720px; margin:0 auto; padding:60px 24px; }
+  .result-section { margin-bottom:56px; opacity:0; transform:translateY(20px); transition:all .6s ease; }
+  .result-section.visible { opacity:1; transform:translateY(0); }
+
+  .section-label { font-family:'Bebas Neue',sans-serif; font-size:11px; letter-spacing:.5em; color:var(--accent); margin-bottom:16px; display:flex; align-items:center; gap:12px; }
+  .section-label::after { content:''; flex:1; height:1px; background:var(--light); }
+
+  .strength-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; }
+  .strength-card { background:white; border:1px solid var(--light); border-radius:4px; padding:20px; position:relative; overflow:hidden; }
+  .strength-card::before { content:''; position:absolute; bottom:0;left:0;right:0; height:3px; background:var(--accent); }
+  .s-icon { font-size:28px; margin-bottom:10px; }
+  .s-name { font-weight:700; font-size:14px; margin-bottom:6px; }
+  .s-desc { font-size:12px; color:var(--muted); line-height:1.6; font-weight:300; }
+
+  .concept-box { background:var(--ink); color:var(--paper); padding:32px; border-radius:4px; margin-bottom:24px; position:relative; overflow:hidden; }
+  .concept-box::before { content:'"'; position:absolute; top:-20px;left:16px; font-size:120px; font-family:'Bebas Neue',sans-serif; color:rgba(200,64,42,.15); line-height:1; }
+  .concept-title { font-family:'Noto Serif JP',serif; font-size:22px; font-weight:600; margin-bottom:12px; color:var(--paper); line-height:1.5; }
+  .concept-desc { font-size:14px; color:rgba(245,240,232,.6); line-height:1.9; font-weight:300; }
+
+  .niche-tags { display:flex; flex-wrap:wrap; gap:8px; }
+  .niche-tag { background:rgba(200,64,42,.08); border:1px solid rgba(200,64,42,.2); color:var(--accent); padding:6px 14px; border-radius:2px; font-size:13px; font-weight:700; }
+
+  .roadmap { display:flex; flex-direction:column; }
+  .roadmap-phase { display:flex; gap:24px; padding-bottom:40px; }
+  .roadmap-phase:last-child { padding-bottom:0; }
+  .phase-timeline { display:flex; flex-direction:column; align-items:center; flex-shrink:0; }
+  .phase-dot { width:36px;height:36px; border-radius:50%; background:white; border:2px solid var(--light); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:var(--muted); z-index:1; }
+  .phase-dot.current { background:var(--accent); border-color:var(--accent); color:white; box-shadow:0 0 0 6px rgba(200,64,42,.15); }
+  .phase-line { flex:1; width:2px; background:var(--light); margin-top:4px; }
+  .roadmap-phase:last-child .phase-line { display:none; }
+  .phase-content { flex:1; padding-top:6px; padding-bottom:16px; }
+  .phase-period { font-family:'Bebas Neue',sans-serif; font-size:11px; letter-spacing:.3em; color:var(--muted); margin-bottom:6px; }
+  .phase-title { font-size:17px; font-weight:700; margin-bottom:8px; }
+  .phase-title.current-title { color:var(--accent); }
+  .phase-tasks { list-style:none; display:flex; flex-direction:column; gap:6px; }
+  .phase-tasks li { font-size:13px; color:var(--muted); padding-left:16px; position:relative; line-height:1.6; font-weight:300; }
+  .phase-tasks li::before { content:'→'; position:absolute; left:0; color:var(--gold); font-size:11px; }
+  .phase-tasks li.hl { color:var(--ink); font-weight:700; }
+  .phase-tasks li.hl::before { color:var(--accent); }
+
+  .income-target { background:linear-gradient(135deg,#1a1612,#2a2018); border-radius:4px; padding:28px 32px; display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap; }
+  .income-label { font-family:'Bebas Neue',sans-serif; font-size:11px; letter-spacing:.4em; color:var(--gold); margin-bottom:8px; }
+  .income-amount { font-family:'Bebas Neue',sans-serif; font-size:52px; color:var(--paper); letter-spacing:.05em; line-height:1; }
+  .income-amount span { font-size:24px; color:var(--muted); }
+  .income-desc { font-size:13px; color:rgba(245,240,232,.4); font-weight:300; margin-top:6px; }
+  .income-bar-section { flex:1; min-width:200px; }
+  .income-bar-label { display:flex; justify-content:space-between; font-size:11px; color:rgba(245,240,232,.3); margin-bottom:8px; }
+  .income-bar { height:6px; background:rgba(255,255,255,.1); border-radius:3px; overflow:hidden; margin-bottom:12px; }
+  .income-bar-fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--gold)); border-radius:3px; transition:width 2s ease; width:0; }
+
+  /* ── PROMPT SECTION ── */
+  .prompt-section-wrapper {
+    background: var(--dark);
+    padding: 80px 24px;
+    margin-top: 0;
+  }
+
+  .prompt-inner { max-width:720px; margin:0 auto; }
+
+  .prompt-header { text-align:center; margin-bottom:56px; }
+  .prompt-header .eyebrow { font-family:'Bebas Neue',sans-serif; font-size:11px; letter-spacing:.5em; color:var(--gold); margin-bottom:16px; }
+  .prompt-header h3 { font-family:'Noto Serif JP',serif; font-size:clamp(22px,4vw,36px); font-weight:400; color:var(--paper); line-height:1.5; margin-bottom:12px; }
+  .prompt-header h3 em { font-style:normal; color:var(--accent); }
+  .prompt-header p { font-size:14px; color:rgba(245,240,232,.4); font-weight:300; }
+
+  .prompt-loading { text-align:center; padding:40px; color:rgba(245,240,232,.4); font-size:14px; font-weight:300; }
+  .prompt-loading .mini-ring { width:32px;height:32px; border:2px solid rgba(184,150,90,.2); border-top-color:var(--gold); border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 16px; }
+
+  .prompt-categories { display:flex; flex-direction:column; gap:32px; }
+
+  .prompt-category { }
+  .prompt-category-title {
+    font-family:'Bebas Neue',sans-serif; font-size:12px; letter-spacing:.4em;
+    color:var(--gold); margin-bottom:16px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .prompt-category-title::after { content:''; flex:1; height:1px; background:rgba(184,150,90,.2); }
+
+  .prompt-cards { display:grid; gap:12px; }
+
+  .prompt-card {
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:4px;
+    padding:20px 24px;
+    position:relative;
+    transition:all .2s;
+    cursor:pointer;
+  }
+  .prompt-card:hover { background:rgba(255,255,255,.07); border-color:rgba(200,64,42,.3); }
+
+  .prompt-card-label { font-size:11px; letter-spacing:.15em; color:var(--accent); margin-bottom:8px; font-weight:700; }
+  .prompt-card-text {
+    font-size:13px; color:rgba(245,240,232,.7); line-height:1.8; font-weight:300;
+    font-family:'Zen Kaku Gothic New',sans-serif;
+    white-space:pre-wrap;
+  }
+
+  .copy-btn {
+    position:absolute; top:16px; right:16px;
+    background:rgba(200,64,42,.2); border:1px solid rgba(200,64,42,.3);
+    color:var(--accent); padding:5px 12px; font-size:11px;
+    font-family:'Zen Kaku Gothic New',sans-serif; font-weight:700;
+    cursor:pointer; border-radius:2px; transition:all .2s; letter-spacing:.05em;
+  }
+  .copy-btn:hover { background:var(--accent); color:white; }
+  .copy-btn.copied { background:#2d6a2d; border-color:#2d6a2d; color:white; }
+
+  .prompt-tip {
+    margin-top:40px;
+    background:rgba(184,150,90,.08);
+    border:1px solid rgba(184,150,90,.2);
+    border-radius:4px;
+    padding:20px 24px;
+  }
+  .prompt-tip-label { font-family:'Bebas Neue',sans-serif; font-size:10px; letter-spacing:.4em; color:var(--gold); margin-bottom:8px; }
+  .prompt-tip-text { font-size:13px; color:rgba(245,240,232,.5); line-height:1.8; font-weight:300; }
+
+  .share-section { text-align:center; padding:48px 24px; background:rgba(0,0,0,.3); }
+  .share-title { font-family:'Noto Serif JP',serif; font-size:20px; color:var(--paper); font-weight:400; margin-bottom:8px; }
+  .share-sub { font-size:13px; color:rgba(245,240,232,.4); font-weight:300; margin-bottom:32px; }
+  .btn-retry { background:transparent; border:1px solid rgba(245,240,232,.2); color:rgba(245,240,232,.6); padding:12px 32px; font-family:'Zen Kaku Gothic New',sans-serif; font-size:13px; cursor:pointer; transition:all .2s; }
+  .btn-retry:hover { border-color:var(--accent); color:var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="compass-ring"></div>
+  <div class="hero-label">SNS COMPASS</div>
+  <h1>あなたの<em>発信軸</em>を<br>見つける診断</h1>
+  <p>「何を発信すればいい？」「自分には強みがない」<br>そう感じているあなたへ。<br>7つの質問で発信軸を診断し、<br>今日から使える<em style="font-style:normal;color:var(--accent)">プロンプト集</em>まで生成します。</p>
+  <button class="btn-start" onclick="startApp()">診断を始める →</button>
+</section>
+
+<!-- APP -->
+<div id="app">
+  <header class="app-header">
+    <div class="app-logo">SNS COMPASS</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="step-counter" id="stepCounter">1 / 7</div>
+  </header>
+  <div id="questionArea"></div>
+</div>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="loading-ring"></div>
+  <div class="loading-text">あなたの発信軸を分析しています</div>
+  <div style="display:flex;flex-direction:column;gap:8px;">
+    <div class="loading-step" id="ls1">　強みを抽出中...</div>
+    <div class="loading-step" id="ls2">　ニッチを選定中...</div>
+    <div class="loading-step" id="ls3">　収益化ロードマップを生成中...</div>
+    <div class="loading-step" id="ls4">　プロンプト集を作成中...</div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div id="result"></div>
+
+<script>
+const QUESTIONS = [
+  {
+    id:'consult',category:'STRENGTH DISCOVERY',
+    title:'友人・知人から、どんなことをよく相談されますか？',
+    hint:'仕事・プライベート問わず。「そういえばよく聞かれるな」というものを選んでください。',
+    type:'choice',multi:true,
+    choices:[
+      {icon:'💼',text:'転職・キャリアの相談',sub:'仕事の悩み、会社のこと'},
+      {icon:'💰',text:'お金・節約・投資の相談',sub:'家計、資産運用など'},
+      {icon:'🍳',text:'料理・食べ物のこと',sub:'レシピ、お店選びなど'},
+      {icon:'💄',text:'美容・ファッションのこと',sub:'スキンケア、コーデなど'},
+      {icon:'🏠',text:'生活・インテリアのこと',sub:'家事、部屋づくりなど'},
+      {icon:'📱',text:'ガジェット・ITのこと',sub:'アプリ、使い方など'},
+      {icon:'💪',text:'健康・ダイエットのこと',sub:'運動、食事管理など'},
+      {icon:'👶',text:'育児・子育てのこと',sub:'子どもとの過ごし方など'},
+    ]
+  },
+  {
+    id:'praise',category:'STRENGTH DISCOVERY',
+    title:'過去に他人から褒められた経験を教えてください',
+    hint:'「なんでそんなにできるの？」と言われたこと。些細なことで構いません。',
+    type:'text',placeholder:'例：「説明がわかりやすい」「料理が上手」「部屋がおしゃれ」「ストレス耐性が高い」など...',
+  },
+  {
+    id:'time',category:'STRENGTH DISCOVERY',
+    title:'時間を忘れて熱中できることは何ですか？',
+    hint:'お金にならなくてもやってしまうこと。趣味でも仕事でもOK。',
+    type:'text',placeholder:'例：「SNSで情報収集すること」「料理の研究」「ゲームの攻略」「家計管理」「筋トレ」...',
+  },
+  {
+    id:'status',category:'CURRENT STATUS',
+    title:'現在のSNS・ブログの状況を教えてください',
+    hint:'正直に答えてください。現在地を把握することで最適な戦略が変わります。',
+    type:'choice',multi:false,
+    choices:[
+      {icon:'🌱',text:'まだ何もやっていない',sub:'これから始める予定'},
+      {icon:'🐣',text:'始めたばかり（〜3ヶ月）',sub:'フォロワー数十〜数百人'},
+      {icon:'🌿',text:'継続中だが伸び悩み（3〜12ヶ月）',sub:'フォロワー数百〜数千人'},
+      {icon:'🌳',text:'ある程度育っている（1年以上）',sub:'フォロワー数千人以上'},
+    ]
+  },
+  {
+    id:'income',category:'CURRENT STATUS',
+    title:'月の副業収入はどのくらいですか？',
+    hint:'現在の収益化状況を教えてください。',
+    type:'choice',multi:false,
+    choices:[
+      {icon:'⭕',text:'¥0（まだ収益なし）',sub:'これから収益化を目指したい'},
+      {icon:'💴',text:'¥1〜¥9,999',sub:'少し稼げているが安定しない'},
+      {icon:'💴',text:'¥10,000〜¥49,999',sub:'月1〜4万円程度'},
+      {icon:'💴',text:'¥50,000以上',sub:'月5万円以上を達成'},
+    ]
+  },
+  {
+    id:'time_per_week',category:'CONDITIONS',
+    title:'副業に使える時間は週に何時間くらいですか？',
+    hint:'スキマ時間を含めたリアルな時間を設定してください。',
+    type:'slider',min:1,max:30,default:7,unit:'時間 / 週',labels:['週1時間','週30時間']
+  },
+  {
+    id:'goal',category:'GOALS',
+    title:'6ヶ月後、どんな状態を目指したいですか？',
+    hint:'現実的に達成したいゴールを一つ選んでください。',
+    type:'choice',multi:false,
+    choices:[
+      {icon:'☕',text:'月1万円〜3万円を稼ぐ',sub:'コーヒー代・趣味費用を副業で賄う'},
+      {icon:'📦',text:'月3万円〜10万円を稼ぐ',sub:'サブスク・生活費の一部を副業で'},
+      {icon:'🚀',text:'月10万円以上を稼ぐ',sub:'本業並みの副収入を目指す'},
+      {icon:'🔥',text:'副業を本業にする',sub:'会社員を辞めてフリーになる'},
+    ]
+  },
+];
+
+let answers={}, currentStep=0, sliderValues={};
+
+function startApp(){
+  document.getElementById('hero').style.display='none';
+  document.getElementById('app').style.display='block';
+  showQuestion(0);
+}
+
+function showQuestion(idx){
+  const q=QUESTIONS[idx], total=QUESTIONS.length;
+  document.getElementById('progressFill').style.width=`${(idx/total)*100}%`;
+  document.getElementById('stepCounter').textContent=`${idx+1} / ${total}`;
+
+  let html=`<div class="question-section">
+    <div class="q-category">${q.category}</div>
+    <div class="q-title">${q.title}</div>
+    <div class="q-hint">${q.hint}</div>`;
+
+  if(q.type==='choice'){
+    const sel=answers[q.id]||(q.multi?[]:null);
+    html+=`<div class="choices">`;
+    q.choices.forEach((c,i)=>{
+      const isSel=q.multi?(sel&&sel.includes(i)):sel===i;
+      html+=`<button class="choice-btn ${isSel?'selected':''}" onclick="selectChoice('${q.id}',${i},${q.multi})">
+        <span class="ci">${c.icon}</span>
+        <div class="ct"><div>${c.text}</div><div class="cs">${c.sub}</div></div>
+      </button>`;
+    });
+    html+=`</div>`;
+  } else if(q.type==='text'){
+    html+=`<textarea class="text-input" id="ti_${q.id}" rows="4" placeholder="${q.placeholder}" oninput="answers['${q.id}']=this.value">${answers[q.id]||''}</textarea>`;
+  } else if(q.type==='slider'){
+    const val=sliderValues[q.id]!==undefined?sliderValues[q.id]:q.default;
+    if(sliderValues[q.id]===undefined){sliderValues[q.id]=q.default;answers[q.id]=q.default;}
+    html+=`<div class="slider-section">
+      <div class="slider-labels"><span>${q.labels[0]}</span><span>${q.labels[1]}</span></div>
+      <input type="range" min="${q.min}" max="${q.max}" value="${val}" oninput="updateSlider('${q.id}',this.value)">
+      <div class="slider-value" id="sv_${q.id}">${val} ${q.unit}</div>
+    </div>`;
+  }
+
+  html+=`<div class="nav-btns">`;
+  if(idx>0) html+=`<button class="btn-back" onclick="goBack()">← 戻る</button>`;
+  html+=`<button class="btn-next" onclick="goNext()">${idx===total-1?'診断する →':'次へ →'}</button>
+  </div></div>`;
+  document.getElementById('questionArea').innerHTML=html;
+}
+
+function selectChoice(qid,idx,multi){
+  if(multi){
+    if(!answers[qid]) answers[qid]=[];
+    const pos=answers[qid].indexOf(idx);
+    if(pos>-1) answers[qid].splice(pos,1); else answers[qid].push(idx);
+  } else { answers[qid]=idx; }
+  showQuestion(currentStep);
+}
+
+function updateSlider(qid,val){
+  sliderValues[qid]=parseInt(val); answers[qid]=parseInt(val);
+  document.getElementById(`sv_${qid}`).textContent=`${val} ${QUESTIONS[currentStep].unit}`;
+}
+
+function goNext(){
+  const q=QUESTIONS[currentStep];
+  if(q.type==='text'){
+    const el=document.getElementById(`ti_${q.id}`);
+    if(el) answers[q.id]=el.value;
+    if(!answers[q.id]?.trim()){el.style.borderColor='var(--accent)';return;}
+  }
+  if(q.type==='choice'&&!q.multi&&answers[q.id]===undefined) return;
+  if(currentStep<QUESTIONS.length-1){currentStep++;showQuestion(currentStep);}
+  else{runAnalysis();}
+}
+
+function goBack(){if(currentStep>0){currentStep--;showQuestion(currentStep);}}
+
+async function runAnalysis(){
+  document.getElementById('app').style.display='none';
+  document.getElementById('loading').style.display='flex';
+
+  const steps=['ls1','ls2','ls3','ls4'];
+  for(let i=0;i<steps.length;i++){
+    await delay(900);
+    if(i>0){
+      const prev=document.getElementById(steps[i-1]);
+      prev.className='loading-step done';
+      prev.textContent='✓ '+prev.textContent.trim();
+    }
+    document.getElementById(steps[i]).className='loading-step active';
+  }
+
+  const q=QUESTIONS;
+  const consultChoices=(answers.consult||[]).map(i=>q[0].choices[i].text).join('、');
+  const statusChoice=answers.status!==undefined?q[3].choices[answers.status].text:'不明';
+  const incomeChoice=answers.income!==undefined?q[4].choices[answers.income].text:'不明';
+  const goalChoice=answers.goal!==undefined?q[6].choices[answers.goal].text:'不明';
+
+  const prompt=`あなたはSNS・ブログ副業のプロコーチです。以下のアンケート結果から「発信軸診断レポート＋プロンプト集」を作成してください。
+
+【アンケート結果】
+・よく相談されること: ${consultChoices||'特になし'}
+・褒められた経験: ${answers.praise||'記入なし'}
+・熱中できること: ${answers.time||'記入なし'}
+・現在のSNS状況: ${statusChoice}
+・月の副業収入: ${incomeChoice}
+・週に使える時間: ${answers.time_per_week}時間
+・6ヶ月後のゴール: ${goalChoice}
+
+「自分には強みがない」という前提で、回答から隠れた強みを引き出してください。
+プロンプト集は、その人のニッチ・発信コンセプトに完全にカスタマイズしてください。
+
+必ず以下のJSON形式のみで返答し、コードブロックや余分なテキストは含めないでください：
+{
+  "strengths": [
+    {"icon":"絵文字","name":"強みの名前（10文字以内）","desc":"説明（40文字以内）"},
+    {"icon":"絵文字","name":"強みの名前","desc":"説明"},
+    {"icon":"絵文字","name":"強みの名前","desc":"説明"}
+  ],
+  "concept_title": "発信コンセプト（20文字以内）",
+  "concept_desc": "コンセプト説明（100文字程度）",
+  "niche_tags": ["タグ1","タグ2","タグ3","タグ4"],
+  "tagline": "キャッチフレーズ（30文字以内）",
+  "roadmap": [
+    {"period":"期間","title":"フェーズ名","tasks":["タスク1","タスク2","タスク3"],"isCurrent":true},
+    {"period":"期間","title":"フェーズ名","tasks":["タスク1","タスク2","タスク3"],"isCurrent":false},
+    {"period":"期間","title":"フェーズ名","tasks":["タスク1","タスク2","タスク3"],"isCurrent":false},
+    {"period":"期間","title":"フェーズ名","tasks":["タスク1","タスク2","タスク3"],"isCurrent":false}
+  ],
+  "income_3months": "数字のみ（例：3000）",
+  "income_6months": "数字のみ（例：30000）",
+  "income_message": "励ましメッセージ（60文字程度）",
+  "prompts": {
+    "niche_research": [
+      {"label":"ネタ発掘①","text":"このニッチに特化したプロンプト文（そのままコピペで使えるもの）"},
+      {"label":"ネタ発掘②","text":"プロンプト文"},
+      {"label":"競合分析","text":"プロンプト文"}
+    ],
+    "content_creation": [
+      {"label":"投稿文生成","text":"プロンプト文"},
+      {"label":"タイトル作成","text":"プロンプト文"},
+      {"label":"キャッチコピー","text":"プロンプト文"}
+    ],
+    "monetization": [
+      {"label":"収益化アイデア","text":"プロンプト文"},
+      {"label":"DM営業文","text":"プロンプト文"},
+      {"label":"商品企画","text":"プロンプト文"}
+    ]
+  }
+}`;
+
+  try {
+    const response=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",
+        max_tokens:3000,
+        messages:[{role:"user",content:prompt}]
+      })
+    });
+    const data=await response.json();
+    const text=data.content.map(i=>i.text||'').join('');
+    // コードブロック除去 + JSON部分だけ抽出
+    let clean=text.replace(/```json|```/g,'').trim();
+    // { から始まる最初のJSONブロックを抽出
+    const jsonStart=clean.indexOf('{');
+    const jsonEnd=clean.lastIndexOf('}');
+    if(jsonStart!==-1 && jsonEnd!==-1){
+      clean=clean.substring(jsonStart, jsonEnd+1);
+    }
+    const result=JSON.parse(clean);
+    await delay(500);
+    document.getElementById('loading').style.display='none';
+    showResult(result);
+  } catch(err){
+    console.error(err);
+    document.getElementById('loading').style.display='none';
+    showError();
+  }
+}
+
+function showResult(data){
+  const income3=parseInt(data.income_3months)||3000;
+  const income6=parseInt(data.income_6months)||30000;
+
+  const strengthsHtml=data.strengths.map(s=>`
+    <div class="strength-card">
+      <div class="s-icon">${s.icon}</div>
+      <div class="s-name">${s.name}</div>
+      <div class="s-desc">${s.desc}</div>
+    </div>`).join('');
+
+  const nicheHtml=data.niche_tags.map(t=>`<span class="niche-tag">${t}</span>`).join('');
+
+  const roadmapHtml=data.roadmap.map((p,i)=>`
+    <div class="roadmap-phase">
+      <div class="phase-timeline">
+        <div class="phase-dot ${p.isCurrent?'current':''}">${i+1}</div>
+        <div class="phase-line"></div>
+      </div>
+      <div class="phase-content">
+        <div class="phase-period">${p.period}</div>
+        <div class="phase-title ${p.isCurrent?'current-title':''}">${p.title}</div>
+        <ul class="phase-tasks">
+          ${p.tasks.map((t,ti)=>`<li ${p.isCurrent&&ti===0?'class="hl"':''}>${t}</li>`).join('')}
+        </ul>
+      </div>
+    </div>`).join('');
+
+  // プロンプト集HTML
+  const promptCats=[
+    {key:'niche_research',label:'NICHE RESEARCH — ネタ探し'},
+    {key:'content_creation',label:'CONTENT CREATION — 投稿作成'},
+    {key:'monetization',label:'MONETIZATION — 収益化'},
+  ];
+
+  // プロンプトをグローバルに保存してdata-index経由でアクセス
+  window._prompts = {};
+  promptCats.forEach(cat=>{
+    (data.prompts[cat.key]||[]).forEach((p,i)=>{
+      window._prompts[`${cat.key}_${i}`] = p.text;
+    });
+  });
+
+  const promptsHtml=promptCats.map(cat=>`
+    <div class="prompt-category">
+      <div class="prompt-category-title">${cat.label}</div>
+      <div class="prompt-cards">
+        ${(data.prompts[cat.key]||[]).map((p,i)=>`
+          <div class="prompt-card" data-key="${cat.key}_${i}">
+            <div class="prompt-card-label">${escapeHtml(p.label)}</div>
+            <div class="prompt-card-text">${escapeHtml(p.text)}</div>
+            <button class="copy-btn" onclick="event.stopPropagation();copyByKey('${cat.key}_${i}',this)">コピー</button>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+
+  document.getElementById('result').innerHTML=`
+    <div class="result-hero">
+      <div class="result-tag">DIAGNOSIS COMPLETE</div>
+      <h2><em>${data.concept_title}</em></h2>
+      <div class="result-tagline">${data.tagline}</div>
+    </div>
+
+    <div class="result-body">
+      <div class="result-section" id="rs1">
+        <div class="section-label">あなたの強み</div>
+        <div class="strength-cards">${strengthsHtml}</div>
+      </div>
+      <div class="result-section" id="rs2">
+        <div class="section-label">発信コンセプト</div>
+        <div class="concept-box">
+          <div class="concept-title">${data.concept_title}</div>
+          <div class="concept-desc">${data.concept_desc}</div>
+        </div>
+        <div class="niche-tags">${nicheHtml}</div>
+      </div>
+      <div class="result-section" id="rs3">
+        <div class="section-label">収益化ロードマップ</div>
+        <div class="roadmap">${roadmapHtml}</div>
+      </div>
+      <div class="result-section" id="rs4">
+        <div class="section-label">収益目標</div>
+        <div class="income-target">
+          <div>
+            <div class="income-label">6ヶ月後の目標月収</div>
+            <div class="income-amount" id="incomeDisplay">¥<span>0</span></div>
+            <div class="income-desc">${data.income_message}</div>
+          </div>
+          <div class="income-bar-section">
+            <div class="income-bar-label"><span>今</span><span>3ヶ月</span><span>6ヶ月</span></div>
+            <div class="income-bar"><div class="income-bar-fill" id="incomeFill"></div></div>
+            <div style="font-size:12px;color:rgba(245,240,232,.4);font-weight:300;">
+              3ヶ月後: ¥${income3.toLocaleString()}/月　→　6ヶ月後: ¥${income6.toLocaleString()}/月
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prompt-section-wrapper">
+      <div class="prompt-inner">
+        <div class="prompt-header">
+          <div class="eyebrow">YOUR CUSTOM PROMPT KIT</div>
+          <h3>あなたの<em>「${data.concept_title}」</em>で<br>使えるプロンプト集</h3>
+          <p>カードをクリックするとコピーできます。ChatGPT・Geminiどちらでも使えます。</p>
+        </div>
+        <div class="prompt-categories">${promptsHtml}</div>
+        <div class="prompt-tip">
+          <div class="prompt-tip-label">💡 使い方のコツ</div>
+          <div class="prompt-tip-text">
+            各プロンプトの【】の中をあなたの具体的な情報に書き換えて使ってください。<br>
+            最初はネタ探しプロンプトから始めて、コンテンツ作成→収益化の順に使うと効果的です。
+          </div>
+        </div>
+      </div>
+      <div class="share-section">
+        <div class="share-title">もう一度診断する</div>
+        <div class="share-sub">別の強みの見せ方を探したいときは</div>
+        <button class="btn-retry" onclick="location.reload()">最初からやり直す</button>
+      </div>
+    </div>`;
+
+  document.getElementById('result').style.display='block';
+
+  setTimeout(()=>{
+    ['rs1','rs2','rs3','rs4'].forEach((id,i)=>{
+      setTimeout(()=>{const el=document.getElementById(id);if(el)el.classList.add('visible');},i*200);
+    });
+    setTimeout(()=>{
+      document.getElementById('incomeFill').style.width='100%';
+      animateNumber('incomeDisplay',income6,'¥');
+    },800);
+  },100);
+}
+
+function copyByKey(key, btn){
+  const text = window._prompts && window._prompts[key];
+  if(!text) return;
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent='コピー済 ✓'; btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='コピー';btn.classList.remove('copied');},2000);
+  });
+}
+
+function escapeHtml(str){
+  if(!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showError(){
+  document.getElementById('result').innerHTML=`<div style="max-width:640px;margin:80px auto;padding:24px;text-align:center;">
+    <p style="color:var(--accent);margin-bottom:24px;">エラーが発生しました。もう一度お試しください。</p>
+    <button onclick="location.reload()" style="background:var(--ink);color:var(--paper);border:none;padding:14px 32px;cursor:pointer;font-size:14px;font-weight:700;">やり直す</button>
+  </div>`;
+  document.getElementById('result').style.display='block';
+}
+
+function animateNumber(elId,target,prefix=''){
+  const el=document.getElementById(elId); if(!el) return;
+  const start=performance.now();
+  function update(now){
+    const p=Math.min((now-start)/2000,1);
+    const e=1-Math.pow(1-p,3);
+    el.innerHTML=`${prefix}<span>${Math.floor(e*target).toLocaleString()}</span>`;
+    if(p<1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+</script>
+</body>
+</html>
