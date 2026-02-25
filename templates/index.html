@@ -661,6 +661,21 @@ function showResult(data) {
       <div class="share-title">もう一度診断する</div>
       <div class="share-sub">別の角度から強みを探したいときは</div>
       <button class="btn-retry" onclick="location.reload()">最初からやり直す</button>
+</div>
+${data.prompts ? `<div class="prompts-section" style="margin:40px 0;padding:40px;background:#fff;border-radius:16px;">
+<h2 style="font-family:serif;font-size:1.4rem;margin-bottom:24px;">あなた専用プロンプト集</h2>
+${['niche_research','content_creation','monetization'].map(cat => {
+  const labels = {'niche_research':'ネタ探し','content_creation':'投稿作成','monetization':'収益化'};
+  return `<div style="margin-bottom:24px;"><h3 style="font-size:1rem;margin-bottom:12px;color:#c8402a;">${labels[cat]}</h3>
+  ${(data.prompts[cat]||[]).map(p=>`<div style="background:#f8f7f4;padding:16px;border-radius:8px;margin-bottom:8px;">
+  <div style="font-weight:bold;margin-bottom:8px;">${p.label}</div>
+  <div style="font-size:0.85rem;color:#555;margin-bottom:8px;">${p.text}</div>
+  <button onclick="navigator.clipboard.writeText('${p.text.replace(/'/g,"\\'")}')" style="background:#222;color:#fff;border:none;padding:6px 16px;border-radius:4px;cursor:pointer;font-size:0.8rem;">コピー</button>
+  </div>`).join('')}
+  </div>`;
+}).join('')}
+</div>` : ''}
+<div class="share-section">
     </div>`;
 
   document.getElementById('result').style.display = 'block';
