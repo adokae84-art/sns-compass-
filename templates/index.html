@@ -6,322 +6,103 @@
 <title>SNSコンパス — あなたの発信軸を見つける</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700;900&family=Bebas+Neue&family=Noto+Serif+JP:wght@300;400;600&display=swap');
-
-  :root {
-    --ink: #0f0e0d;
-    --paper: #f5f0e8;
-    --accent: #c8402a;
-    --gold: #b8965a;
-    --muted: #7a7060;
-    --light: #e8e0d0;
-    --step-bg: #1a1612;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: 'Zen Kaku Gothic New', sans-serif;
-    background: var(--paper);
-    color: var(--ink);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 999;
-    opacity: 0.4;
-  }
-
-  .hero {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 60px 24px;
-    text-align: center;
-    background: var(--step-bg);
-    overflow: hidden;
-    position: relative;
-  }
-
-  .hero::before {
-    content: '';
-    position: absolute;
-    width: 600px; height: 600px;
-    background: radial-gradient(circle, rgba(200,64,42,0.15) 0%, transparent 70%);
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    animation: pulse 6s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.6}
-    50%{transform:translate(-50%,-50%) scale(1.2);opacity:1}
-  }
-
-  .compass-ring {
-    width: 120px; height: 120px;
-    border: 2px solid var(--gold);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 32px;
-    animation: spin 20s linear infinite;
-  }
-
+  :root { --ink:#0f0e0d; --paper:#f5f0e8; --accent:#c8402a; --gold:#b8965a; --muted:#7a7060; --light:#e8e0d0; --step-bg:#1a1612; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Zen Kaku Gothic New',sans-serif; background:var(--paper); color:var(--ink); min-height:100vh; overflow-x:hidden; }
+  body::before { content:''; position:fixed; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events:none; z-index:999; opacity:0.4; }
+  .hero { min-height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:60px 24px; text-align:center; background:var(--step-bg); overflow:hidden; position:relative; }
+  .hero::before { content:''; position:absolute; width:600px; height:600px; background:radial-gradient(circle,rgba(200,64,42,0.15) 0%,transparent 70%); top:50%; left:50%; transform:translate(-50%,-50%); animation:pulse 6s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.6} 50%{transform:translate(-50%,-50%) scale(1.2);opacity:1} }
+  .compass-ring { width:120px; height:120px; border:2px solid var(--gold); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 32px; animation:spin 20s linear infinite; }
   @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-
-  .compass-ring::before {
-    content: '◈';
-    font-size: 40px;
-    color: var(--accent);
-    animation: spin 20s linear infinite reverse;
-  }
-
-  .hero-label {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 13px;
-    letter-spacing: 0.4em;
-    color: var(--gold);
-    margin-bottom: 16px;
-  }
-
-  .hero h1 {
-    font-family: 'Noto Serif JP', serif;
-    font-size: clamp(36px,7vw,72px);
-    font-weight: 600;
-    color: var(--paper);
-    line-height: 1.2;
-    margin-bottom: 24px;
-  }
-
-  .hero h1 em { font-style: normal; color: var(--accent); }
-
-  .hero p {
-    font-size: 15px;
-    color: rgba(245,240,232,.6);
-    max-width: 480px;
-    line-height: 1.9;
-    margin-bottom: 48px;
-    font-weight: 300;
-  }
-
-  .btn-start {
-    background: var(--accent);
-    color: white;
-    border: none;
-    padding: 18px 48px;
-    font-family: 'Zen Kaku Gothic New', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: .1em;
-    cursor: pointer;
-    clip-path: polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));
-    transition: all .3s;
-  }
-
+  .compass-ring::before { content:'◈'; font-size:40px; color:var(--accent); animation:spin 20s linear infinite reverse; }
+  .hero-label { font-family:'Bebas Neue',sans-serif; font-size:13px; letter-spacing:0.4em; color:var(--gold); margin-bottom:16px; }
+  .hero h1 { font-family:'Noto Serif JP',serif; font-size:clamp(36px,7vw,72px); font-weight:600; color:var(--paper); line-height:1.2; margin-bottom:24px; }
+  .hero h1 em { font-style:normal; color:var(--accent); }
+  .hero p { font-size:15px; color:rgba(245,240,232,.6); max-width:480px; line-height:1.9; margin-bottom:48px; font-weight:300; }
+  .btn-start { background:var(--accent); color:white; border:none; padding:18px 48px; font-family:'Zen Kaku Gothic New',sans-serif; font-size:16px; font-weight:700; letter-spacing:.1em; cursor:pointer; clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px)); transition:all .3s; }
   .btn-start:hover { background:#e04f37; transform:translateY(-2px); box-shadow:0 8px 32px rgba(200,64,42,.4); }
-
   #app { display:none; min-height:100vh; background:var(--paper); }
-
-  .app-header {
-    background: var(--step-bg);
-    padding: 16px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    border-bottom: 1px solid rgba(184,150,90,.3);
-  }
-
+  .app-header { background:var(--step-bg); padding:16px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; border-bottom:1px solid rgba(184,150,90,.3); }
   .app-logo { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:.15em; color:var(--gold); }
-
   .progress-bar { flex:1; max-width:300px; height:3px; background:rgba(255,255,255,.1); margin:0 24px; border-radius:2px; overflow:hidden; }
   .progress-fill { height:100%; background:var(--accent); border-radius:2px; transition:width .5s ease; }
-
   .step-counter { font-size:12px; color:rgba(245,240,232,.5); letter-spacing:.1em; min-width:60px; text-align:right; }
-
-  .question-section {
-    max-width: 640px;
-    margin: 0 auto;
-    padding: 60px 24px;
-    min-height: calc(100vh - 60px);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    animation: fadeInUp .4s ease;
-  }
-
+  .question-section { max-width:640px; margin:0 auto; padding:60px 24px; min-height:calc(100vh - 60px); display:flex; flex-direction:column; justify-content:center; animation:fadeInUp .4s ease; }
   @keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
-
   .q-category { font-family:'Bebas Neue',sans-serif; font-size:11px; letter-spacing:.5em; color:var(--accent); margin-bottom:16px; }
   .q-title { font-family:'Noto Serif JP',serif; font-size:clamp(22px,4vw,32px); font-weight:400; line-height:1.6; margin-bottom:12px; }
   .q-hint { font-size:13px; color:var(--muted); margin-bottom:36px; line-height:1.7; font-weight:300; }
-
   .choices { display:grid; gap:12px; margin-bottom:32px; }
-
-  .choice-btn {
-    background: white;
-    border: 1.5px solid var(--light);
-    border-radius: 4px;
-    padding: 16px 20px;
-    text-align: left;
-    cursor: pointer;
-    font-family: 'Zen Kaku Gothic New', sans-serif;
-    font-size: 14px;
-    color: var(--ink);
-    transition: all .2s;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
+  .choice-btn { background:white; border:1.5px solid var(--light); border-radius:4px; padding:16px 20px; text-align:left; cursor:pointer; font-family:'Zen Kaku Gothic New',sans-serif; font-size:14px; color:var(--ink); transition:all .2s; position:relative; overflow:hidden; display:flex; align-items:center; gap:12px; }
   .choice-btn .choice-icon { font-size:20px; flex-shrink:0; }
   .choice-btn .choice-text { flex:1; }
   .choice-btn .choice-sub { font-size:11px; color:var(--muted); margin-top:3px; line-height:1.4; }
-
-  .choice-btn::before {
-    content:'';
-    position:absolute;
-    left:0;top:0;bottom:0;
-    width:3px;
-    background:var(--accent);
-    transform:scaleY(0);
-    transition:transform .2s;
-  }
-
+  .choice-btn::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--accent); transform:scaleY(0); transition:transform .2s; }
   .choice-btn:hover { border-color:var(--accent); background:rgba(200,64,42,.03); }
-  .choice-btn:hover::before, .choice-btn.selected::before { transform:scaleY(1); }
+  .choice-btn:hover::before { transform:scaleY(1); }
   .choice-btn.selected { border-color:var(--accent) !important; background:rgba(200,64,42,.1) !important; }
-　.choice-btn.selected::before { transform:scaleY(1) !important; }
-  .text-input {
-    width:100%; background:white; border:1.5px solid var(--light); border-radius:4px;
-    padding:20px; font-family:'Zen Kaku Gothic New',sans-serif; font-size:15px;
-    color:var(--ink); resize:none; transition:border-color .2s; outline:none;
-    margin-bottom:32px; line-height:1.8;
-  }
+  .choice-btn.selected::before { transform:scaleY(1) !important; }
+  .text-input { width:100%; background:white; border:1.5px solid var(--light); border-radius:4px; padding:20px; font-family:'Zen Kaku Gothic New',sans-serif; font-size:15px; color:var(--ink); resize:none; transition:border-color .2s; outline:none; margin-bottom:32px; line-height:1.8; }
   .text-input:focus { border-color:var(--accent); }
   .text-input::placeholder { color:var(--light); }
-
   .slider-section { margin-bottom:32px; }
   .slider-labels { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-bottom:12px; }
-
   input[type=range] { width:100%; -webkit-appearance:none; height:4px; background:var(--light); border-radius:2px; outline:none; margin-bottom:8px; }
   input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:var(--accent); cursor:pointer; box-shadow:0 2px 8px rgba(200,64,42,.4); }
-
   .slider-value { text-align:center; font-size:24px; font-weight:700; color:var(--accent); font-family:'Bebas Neue',sans-serif; letter-spacing:.1em; }
-
   .nav-btns { display:flex; gap:12px; align-items:center; }
-
-  .btn-next {
-    background:var(--ink); color:var(--paper); border:none; padding:14px 36px;
-    font-family:'Zen Kaku Gothic New',sans-serif; font-size:14px; font-weight:700;
-    letter-spacing:.1em; cursor:pointer;
-    clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));
-    transition:all .2s;
-  }
+  .btn-next { background:var(--ink); color:var(--paper); border:none; padding:14px 36px; font-family:'Zen Kaku Gothic New',sans-serif; font-size:14px; font-weight:700; letter-spacing:.1em; cursor:pointer; clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px)); transition:all .2s; }
   .btn-next:hover { background:var(--accent); transform:translateY(-1px); }
-  .btn-next:disabled { opacity:.3; cursor:not-allowed; transform:none; }
-
   .btn-back { background:transparent; border:none; color:var(--muted); font-size:13px; cursor:pointer; padding:14px 0; font-family:'Zen Kaku Gothic New',sans-serif; transition:color .2s; }
   .btn-back:hover { color:var(--ink); }
-
-  #loading {
-    display:none;
-    min-height:100vh;
-    background:var(--step-bg);
-    align-items:center;
-    justify-content:center;
-    flex-direction:column;
-    gap:32px;
-  }
-
+  #loading { display:none; min-height:100vh; background:var(--step-bg); align-items:center; justify-content:center; flex-direction:column; gap:32px; }
   .loading-ring { width:80px; height:80px; border:2px solid rgba(184,150,90,.2); border-top-color:var(--gold); border-radius:50%; animation:spin 1s linear infinite; }
   .loading-text { font-family:'Noto Serif JP',serif; color:rgba(245,240,232,.6); font-size:15px; font-weight:300; letter-spacing:.05em; text-align:center; }
-
   .loading-step { font-size:13px; color:rgba(245,240,232,.3); transition:color .5s; display:flex; align-items:center; gap:8px; }
   .loading-step.active { color:var(--gold); }
   .loading-step.done { color:rgba(245,240,232,.5); }
-
   #result { display:none; background:var(--paper); }
-
-  .result-hero {
-    background:var(--step-bg);
-    padding:60px 24px;
-    text-align:center;
-    position:relative;
-    overflow:hidden;
-  }
-  .result-hero::before {
-    content:'';
-    position:absolute;
-    width:400px;height:400px;
-    background:radial-gradient(circle,rgba(200,64,42,.12) 0%,transparent 70%);
-    top:50%;left:50%;
-    transform:translate(-50%,-50%);
-  }
-
+  .result-hero { background:var(--step-bg); padding:60px 24px; text-align:center; position:relative; overflow:hidden; }
+  .result-hero::before { content:''; position:absolute; width:400px; height:400px; background:radial-gradient(circle,rgba(200,64,42,.12) 0%,transparent 70%); top:50%; left:50%; transform:translate(-50%,-50%); }
   .result-tag { display:inline-block; font-family:'Bebas Neue',sans-serif; font-size:11px; letter-spacing:.5em; color:var(--gold); border:1px solid rgba(184,150,90,.4); padding:6px 16px; margin-bottom:32px; }
-
   .result-hero h2 { font-family:'Noto Serif JP',serif; font-size:clamp(24px,5vw,48px); font-weight:600; color:var(--paper); line-height:1.4; max-width:700px; margin:0 auto 24px; }
   .result-hero h2 em { font-style:normal; color:var(--accent); }
   .result-tagline { font-size:15px; color:rgba(245,240,232,.5); font-weight:300; max-width:500px; margin:0 auto; line-height:1.9; }
-
   .result-body { max-width:720px; margin:0 auto; padding:60px 24px; }
-
   .result-section { margin-bottom:56px; opacity:0; transform:translateY(20px); transition:all .6s ease; }
   .result-section.visible { opacity:1; transform:translateY(0); }
-
   .section-label { font-family:'Bebas Neue',sans-serif; font-size:11px; letter-spacing:.5em; color:var(--accent); margin-bottom:16px; display:flex; align-items:center; gap:12px; }
   .section-label::after { content:''; flex:1; height:1px; background:var(--light); }
-
   .strength-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:24px; }
-
   .strength-card { background:white; border:1px solid var(--light); border-radius:4px; padding:20px; position:relative; overflow:hidden; }
-  .strength-card::before { content:''; position:absolute; bottom:0;left:0;right:0; height:3px; background:var(--accent); }
+  .strength-card::before { content:''; position:absolute; bottom:0; left:0; right:0; height:3px; background:var(--accent); }
   .strength-icon { font-size:28px; margin-bottom:10px; }
   .strength-name { font-weight:700; font-size:14px; margin-bottom:6px; }
   .strength-desc { font-size:12px; color:var(--muted); line-height:1.6; font-weight:300; }
-
   .concept-box { background:var(--ink); color:var(--paper); padding:32px; border-radius:4px; margin-bottom:24px; position:relative; overflow:hidden; }
-  .concept-box::before { content:'"'; position:absolute; top:-20px;left:16px; font-size:120px; font-family:'Bebas Neue',sans-serif; color:rgba(200,64,42,.15); line-height:1; }
+  .concept-box::before { content:'"'; position:absolute; top:-20px; left:16px; font-size:120px; font-family:'Bebas Neue',sans-serif; color:rgba(200,64,42,.15); line-height:1; }
   .concept-title { font-family:'Noto Serif JP',serif; font-size:22px; font-weight:600; margin-bottom:12px; color:var(--paper); line-height:1.5; }
   .concept-desc { font-size:14px; color:rgba(245,240,232,.6); line-height:1.9; font-weight:300; }
-
   .niche-tags { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:24px; }
   .niche-tag { background:rgba(200,64,42,.08); border:1px solid rgba(200,64,42,.2); color:var(--accent); padding:6px 14px; border-radius:2px; font-size:13px; font-weight:700; }
-
   .roadmap { display:flex; flex-direction:column; }
-
   .roadmap-phase { display:flex; gap:24px; padding-bottom:40px; position:relative; }
   .roadmap-phase:last-child { padding-bottom:0; }
-
   .phase-timeline { display:flex; flex-direction:column; align-items:center; flex-shrink:0; }
-  .phase-dot { width:36px;height:36px; border-radius:50%; background:white; border:2px solid var(--light); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:var(--muted); flex-shrink:0; z-index:1; }
+  .phase-dot { width:36px; height:36px; border-radius:50%; background:white; border:2px solid var(--light); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:var(--muted); flex-shrink:0; z-index:1; }
   .phase-dot.current { background:var(--accent); border-color:var(--accent); color:white; box-shadow:0 0 0 6px rgba(200,64,42,.15); }
   .phase-line { flex:1; width:2px; background:var(--light); margin-top:4px; }
   .roadmap-phase:last-child .phase-line { display:none; }
-
   .phase-content { flex:1; padding-top:6px; padding-bottom:16px; }
   .phase-period { font-family:'Bebas Neue',sans-serif; font-size:11px; letter-spacing:.3em; color:var(--muted); margin-bottom:6px; }
   .phase-title { font-size:17px; font-weight:700; margin-bottom:8px; }
   .phase-title.current-title { color:var(--accent); }
-
   .phase-tasks { list-style:none; display:flex; flex-direction:column; gap:6px; }
   .phase-tasks li { font-size:13px; color:var(--muted); padding-left:16px; position:relative; line-height:1.6; font-weight:300; }
   .phase-tasks li::before { content:'→'; position:absolute; left:0; color:var(--gold); font-size:11px; }
   .phase-tasks li.highlight { color:var(--ink); font-weight:700; }
   .phase-tasks li.highlight::before { color:var(--accent); }
-
   .income-target { background:linear-gradient(135deg,#1a1612,#2a2018); border-radius:4px; padding:28px 32px; display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap; }
   .income-label { font-family:'Bebas Neue',sans-serif; font-size:11px; letter-spacing:.4em; color:var(--gold); margin-bottom:8px; }
   .income-amount { font-family:'Bebas Neue',sans-serif; font-size:52px; color:var(--paper); letter-spacing:.05em; line-height:1; }
@@ -331,13 +112,21 @@
   .income-bar-label { display:flex; justify-content:space-between; font-size:11px; color:rgba(245,240,232,.3); margin-bottom:8px; }
   .income-bar { height:6px; background:rgba(255,255,255,.1); border-radius:3px; overflow:hidden; margin-bottom:12px; }
   .income-bar-fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--gold)); border-radius:3px; transition:width 2s ease; width:0; }
-
-  .share-section { text-align:center; padding:48px 24px; background:var(--ink); margin-top:60px; }
+  .prompts-section { max-width:720px; margin:0 auto; padding:0 24px 40px; }
+  .prompts-category { margin-bottom:28px; }
+  .prompts-category-title { font-family:'Bebas Neue',sans-serif; font-size:11px; letter-spacing:.5em; color:var(--accent); margin-bottom:16px; display:flex; align-items:center; gap:12px; }
+  .prompts-category-title::after { content:''; flex:1; height:1px; background:var(--light); }
+  .prompt-card { background:white; border:1px solid var(--light); border-radius:4px; padding:20px; margin-bottom:12px; }
+  .prompt-label { font-weight:700; font-size:14px; margin-bottom:8px; }
+  .prompt-text { font-size:13px; color:var(--muted); line-height:1.7; margin-bottom:12px; font-weight:300; }
+  .btn-copy { background:var(--ink); color:var(--paper); border:none; padding:8px 20px; font-family:'Zen Kaku Gothic New',sans-serif; font-size:12px; font-weight:700; cursor:pointer; border-radius:2px; transition:all .2s; }
+  .btn-copy:hover { background:var(--accent); }
+  .btn-copy.copied { background:var(--gold); }
+  .share-section { text-align:center; padding:48px 24px; background:var(--ink); }
   .share-title { font-family:'Noto Serif JP',serif; font-size:20px; color:var(--paper); font-weight:400; margin-bottom:8px; }
   .share-sub { font-size:13px; color:rgba(245,240,232,.4); font-weight:300; margin-bottom:32px; }
   .btn-retry { background:transparent; border:1px solid rgba(245,240,232,.2); color:rgba(245,240,232,.6); padding:12px 32px; font-family:'Zen Kaku Gothic New',sans-serif; font-size:13px; cursor:pointer; transition:all .2s; }
   .btn-retry:hover { border-color:var(--accent); color:var(--accent); }
-
   .error-box { background:rgba(200,64,42,.1); border:1px solid rgba(200,64,42,.3); padding:20px; border-radius:4px; margin-bottom:24px; font-size:14px; color:var(--accent); line-height:1.7; }
 </style>
 </head>
@@ -374,7 +163,7 @@
 <div id="result"></div>
 
 <script>
-const QUESTIONS = [
+var QUESTIONS = [
   {
     id:'consult', category:'STRENGTH DISCOVERY',
     title:'友人・知人から、どんなことをよく相談されますか？',
@@ -388,7 +177,7 @@ const QUESTIONS = [
       {icon:'🏠',text:'生活・インテリアのこと',sub:'家事、部屋づくりなど'},
       {icon:'📱',text:'ガジェット・ITのこと',sub:'アプリ、使い方など'},
       {icon:'💪',text:'健康・ダイエットのこと',sub:'運動、食事管理など'},
-      {icon:'👶',text:'育児・子育てのこと',sub:'子どもとの過ごし方など'},
+      {icon:'👶',text:'育児・子育てのこと',sub:'子どもとの過ごし方など'}
     ]
   },
   {
@@ -396,14 +185,14 @@ const QUESTIONS = [
     title:'過去に他人から褒められた経験を教えてください',
     hint:'「なんでそんなにできるの？」と言われたこと。些細なことで構いません。',
     type:'text',
-    placeholder:'例：「説明がわかりやすい」「料理が上手」「部屋がおしゃれ」「ストレス耐性が高い」など...',
+    placeholder:'例：「説明がわかりやすい」「料理が上手」「部屋がおしゃれ」「ストレス耐性が高い」など...'
   },
   {
     id:'time', category:'STRENGTH DISCOVERY',
     title:'時間を忘れて熱中できることは何ですか？',
     hint:'お金にならなくてもやってしまうこと。趣味でも仕事でもOK。',
     type:'text',
-    placeholder:'例：「SNSで情報収集すること」「料理の研究」「ゲームの攻略」「家計管理」「筋トレ」...',
+    placeholder:'例：「SNSで情報収集すること」「料理の研究」「ゲームの攻略」「家計管理」「筋トレ」...'
   },
   {
     id:'status', category:'CURRENT STATUS',
@@ -414,7 +203,7 @@ const QUESTIONS = [
       {icon:'🌱',text:'まだ何もやっていない',sub:'これから始める予定'},
       {icon:'🐣',text:'始めたばかり（〜3ヶ月）',sub:'フォロワー数十〜数百人'},
       {icon:'🌿',text:'継続中だが伸び悩み（3〜12ヶ月）',sub:'フォロワー数百〜数千人'},
-      {icon:'🌳',text:'ある程度育っている（1年以上）',sub:'フォロワー数千人以上'},
+      {icon:'🌳',text:'ある程度育っている（1年以上）',sub:'フォロワー数千人以上'}
     ]
   },
   {
@@ -426,7 +215,7 @@ const QUESTIONS = [
       {icon:'⭕',text:'¥0（まだ収益なし）',sub:'これから収益化を目指したい'},
       {icon:'💴',text:'¥1〜¥9,999',sub:'少し稼げているが安定しない'},
       {icon:'💴',text:'¥10,000〜¥49,999',sub:'月1〜4万円程度'},
-      {icon:'💴',text:'¥50,000以上',sub:'月5万円以上を達成'},
+      {icon:'💴',text:'¥50,000以上',sub:'月5万円以上を達成'}
     ]
   },
   {
@@ -444,14 +233,14 @@ const QUESTIONS = [
       {icon:'☕',text:'月1万円〜3万円を稼ぐ',sub:'コーヒー代・趣味費用を副業で賄う'},
       {icon:'📦',text:'月3万円〜10万円を稼ぐ',sub:'サブスク・生活費の一部を副業で'},
       {icon:'🚀',text:'月10万円以上を稼ぐ',sub:'本業並みの副収入を目指す'},
-      {icon:'🔥',text:'副業を本業にする',sub:'会社員を辞めてフリーになる'},
+      {icon:'🔥',text:'副業を本業にする',sub:'会社員を辞めてフリーになる'}
     ]
-  },
+  }
 ];
 
-let answers = {};
-let currentStep = 0;
-let sliderValues = {};
+var answers = {};
+var currentStep = 0;
+var sliderValues = {};
 
 function startApp() {
   document.getElementById('hero').style.display = 'none';
@@ -460,43 +249,44 @@ function startApp() {
 }
 
 function showQuestion(idx) {
-  const q = QUESTIONS[idx];
-  const total = QUESTIONS.length;
-  document.getElementById('progressFill').style.width = `${(idx/total)*100}%`;
-  document.getElementById('stepCounter').textContent = `${idx+1} / ${total}`;
+  var q = QUESTIONS[idx];
+  var total = QUESTIONS.length;
+  document.getElementById('progressFill').style.width = ((idx/total)*100) + '%';
+  document.getElementById('stepCounter').textContent = (idx+1) + ' / ' + total;
 
-  let html = `<div class="question-section">
-    <div class="q-category">${q.category}</div>
-    <div class="q-title">${q.title}</div>
-    <div class="q-hint">${q.hint}</div>`;
+  var html = '<div class="question-section">';
+  html += '<div class="q-category">' + q.category + '</div>';
+  html += '<div class="q-title">' + q.title + '</div>';
+  html += '<div class="q-hint">' + q.hint + '</div>';
 
   if (q.type === 'choice') {
-    const selected = answers[q.id] || (q.multi ? [] : null);
-    html += `<div class="choices">`;
-    q.choices.forEach((c,i) => {
-      const isSel = q.multi ? (selected && selected.includes(i)) : selected === i;
-      html += `<button class="choice-btn ${isSel?'selected':''}" onclick="selectChoice('${q.id}',${i},${q.multi})">
-        <span class="choice-icon">${c.icon}</span>
-        <div class="choice-text"><div>${c.text}</div><div class="choice-sub">${c.sub}</div></div>
-      </button>`;
-    });
-    html += `</div>`;
+    var selected = answers[q.id] || (q.multi ? [] : null);
+    html += '<div class="choices">';
+    for (var i = 0; i < q.choices.length; i++) {
+      var c = q.choices[i];
+      var isSel = q.multi ? (selected && selected.indexOf(i) > -1) : selected === i;
+      html += '<button class="choice-btn ' + (isSel ? 'selected' : '') + '" onclick="selectChoice(\'' + q.id + '\',' + i + ',' + (q.multi ? 'true' : 'false') + ')">';
+      html += '<span class="choice-icon">' + c.icon + '</span>';
+      html += '<div class="choice-text"><div>' + c.text + '</div><div class="choice-sub">' + c.sub + '</div></div>';
+      html += '</button>';
+    }
+    html += '</div>';
   } else if (q.type === 'text') {
-    html += `<textarea class="text-input" id="ti_${q.id}" rows="4" placeholder="${q.placeholder}" oninput="answers['${q.id}']=this.value">${answers[q.id]||''}</textarea>`;
+    html += '<textarea class="text-input" id="ti_' + q.id + '" rows="4" placeholder="' + q.placeholder + '" oninput="answers[\'' + q.id + '\']=this.value">' + (answers[q.id]||'') + '</textarea>';
   } else if (q.type === 'slider') {
-    const val = sliderValues[q.id] !== undefined ? sliderValues[q.id] : q.default;
+    var val = sliderValues[q.id] !== undefined ? sliderValues[q.id] : q.default;
     if (sliderValues[q.id] === undefined) { sliderValues[q.id] = q.default; answers[q.id] = q.default; }
-    html += `<div class="slider-section">
-      <div class="slider-labels"><span>${q.labels[0]}</span><span>${q.labels[1]}</span></div>
-      <input type="range" min="${q.min}" max="${q.max}" value="${val}" oninput="updateSlider('${q.id}',this.value)">
-      <div class="slider-value" id="sv_${q.id}">${val} ${q.unit}</div>
-    </div>`;
+    html += '<div class="slider-section">';
+    html += '<div class="slider-labels"><span>' + q.labels[0] + '</span><span>' + q.labels[1] + '</span></div>';
+    html += '<input type="range" min="' + q.min + '" max="' + q.max + '" value="' + val + '" oninput="updateSlider(\'' + q.id + '\',this.value)">';
+    html += '<div class="slider-value" id="sv_' + q.id + '">' + val + ' ' + q.unit + '</div>';
+    html += '</div>';
   }
 
-  html += `<div class="nav-btns">`;
-  if (idx > 0) html += `<button class="btn-back" onclick="goBack()">← 戻る</button>`;
-  html += `<button class="btn-next" onclick="goNext()">${idx===total-1?'診断する →':'次へ →'}</button>
-  </div></div>`;
+  html += '<div class="nav-btns">';
+  if (idx > 0) html += '<button class="btn-back" onclick="goBack()">← 戻る</button>';
+  html += '<button class="btn-next" onclick="goNext()">' + (idx===total-1 ? '診断する →' : '次へ →') + '</button>';
+  html += '</div></div>';
 
   document.getElementById('questionArea').innerHTML = html;
 }
@@ -504,84 +294,81 @@ function showQuestion(idx) {
 function selectChoice(qid, idx, multi) {
   if (multi) {
     if (!answers[qid]) answers[qid] = [];
-    const pos = answers[qid].indexOf(idx);
+    var pos = answers[qid].indexOf(idx);
     if (pos > -1) answers[qid].splice(pos,1); else answers[qid].push(idx);
-  } else { answers[qid] = idx; }
+  } else {
+    answers[qid] = idx;
+  }
   showQuestion(currentStep);
-document.querySelectorAll('.choice-btn').forEach((btn, i) => {
-  const sel = answers[qid];
-  const isSelected = multi ? (sel && sel.includes(i)) : sel === i;
-  if (isSelected) btn.classList.add('selected');
-  else btn.classList.remove('selected');
-});
 }
 
 function updateSlider(qid, val) {
   sliderValues[qid] = parseInt(val);
   answers[qid] = parseInt(val);
-  const q = QUESTIONS[currentStep];
-  document.getElementById(`sv_${qid}`).textContent = `${val} ${q.unit}`;
+  var q = QUESTIONS[currentStep];
+  document.getElementById('sv_' + qid).textContent = val + ' ' + q.unit;
 }
 
 function goNext() {
-  const q = QUESTIONS[currentStep];
+  var q = QUESTIONS[currentStep];
   if (q.type === 'text') {
-    const el = document.getElementById(`ti_${q.id}`);
+    var el = document.getElementById('ti_' + q.id);
     if (el) answers[q.id] = el.value;
-    if (!answers[q.id]?.trim()) { el.style.borderColor='var(--accent)'; return; }
+    if (!answers[q.id] || !answers[q.id].trim()) { el.style.borderColor='var(--accent)'; return; }
   }
   if (q.type==='choice' && !q.multi && answers[q.id]===undefined) return;
-
   if (currentStep < QUESTIONS.length-1) { currentStep++; showQuestion(currentStep); }
   else { runAnalysis(); }
 }
 
 function goBack() { if (currentStep>0) { currentStep--; showQuestion(currentStep); } }
 
+function delay(ms) { return new Promise(function(r){ setTimeout(r,ms); }); }
+
 async function runAnalysis() {
   document.getElementById('app').style.display = 'none';
   document.getElementById('loading').style.display = 'flex';
 
-  const steps = ['ls1','ls2','ls3','ls4'];
-  for (let i=0; i<steps.length; i++) {
+  var steps = ['ls1','ls2','ls3','ls4'];
+  for (var i=0; i<steps.length; i++) {
     await delay(900);
     if (i>0) {
-      const prev = document.getElementById(steps[i-1]);
+      var prev = document.getElementById(steps[i-1]);
       prev.className = 'loading-step done';
       prev.textContent = '✓ ' + prev.textContent.trim();
     }
     document.getElementById(steps[i]).className = 'loading-step active';
   }
 
-  const q = QUESTIONS;
-  const consultChoices = (answers.consult||[]).map(i=>q[0].choices[i].text).join('、');
-  const statusChoice = answers.status!==undefined ? q[3].choices[answers.status].text : '不明';
-  const incomeChoice = answers.income!==undefined ? q[4].choices[answers.income].text : '不明';
-  const goalChoice = answers.goal!==undefined ? q[6].choices[answers.goal].text : '不明';
+  var q = QUESTIONS;
+  var consultArr = answers.consult || [];
+  var consultChoices = consultArr.map(function(i){ return q[0].choices[i].text; }).join('、');
+  var statusChoice = answers.status!==undefined ? q[3].choices[answers.status].text : '不明';
+  var incomeChoice = answers.income!==undefined ? q[4].choices[answers.income].text : '不明';
+  var goalChoice = answers.goal!==undefined ? q[6].choices[answers.goal].text : '不明';
 
-  const payload = {
+  var payload = {
     consult: consultChoices || '特になし',
     praise: answers.praise || '記入なし',
     time: answers.time || '記入なし',
     status: statusChoice,
     income: incomeChoice,
     time_per_week: answers.time_per_week || 7,
-    goal: goalChoice,
+    goal: goalChoice
   };
 
   try {
-    const res = await fetch('/analyze', {
+    var res = await fetch('/analyze', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload),
+      body:JSON.stringify(payload)
     });
-    const data = await res.json();
+    var data = await res.json();
     if (data.error) throw new Error(data.error);
     await delay(500);
     document.getElementById('loading').style.display = 'none';
     showResult(data);
   } catch(err) {
-    console.error(err);
     await delay(300);
     document.getElementById('loading').style.display = 'none';
     showErrorResult(err.message);
@@ -589,136 +376,116 @@ async function runAnalysis() {
 }
 
 function showResult(data) {
-  const income3 = parseInt(data.income_3months)||3000;
-  const income6 = parseInt(data.income_6months)||30000;
+  var income3 = parseInt(data.income_3months)||3000;
+  var income6 = parseInt(data.income_6months)||30000;
 
-  const strengthsHtml = data.strengths.map(s=>`
-    <div class="strength-card">
-      <div class="strength-icon">${s.icon}</div>
-      <div class="strength-name">${s.name}</div>
-      <div class="strength-desc">${s.desc}</div>
-    </div>`).join('');
+  var strengthsHtml = '';
+  for (var i=0; i<data.strengths.length; i++) {
+    var s = data.strengths[i];
+    strengthsHtml += '<div class="strength-card"><div class="strength-icon">' + s.icon + '</div><div class="strength-name">' + s.name + '</div><div class="strength-desc">' + s.desc + '</div></div>';
+  }
 
-  const nicheHtml = data.niche_tags.map(t=>`<span class="niche-tag">${t}</span>`).join('');
+  var nicheHtml = '';
+  for (var i=0; i<data.niche_tags.length; i++) {
+    nicheHtml += '<span class="niche-tag">' + data.niche_tags[i] + '</span>';
+  }
 
-  const roadmapHtml = data.roadmap.map((phase,i)=>`
-    <div class="roadmap-phase">
-      <div class="phase-timeline">
-        <div class="phase-dot ${phase.isCurrent?'current':''}">${i+1}</div>
-        <div class="phase-line"></div>
-      </div>
-      <div class="phase-content">
-        <div class="phase-period">${phase.period}</div>
-        <div class="phase-title ${phase.isCurrent?'current-title':''}">${phase.title}</div>
-        <ul class="phase-tasks">
-          ${phase.tasks.map((t,ti)=>`<li ${phase.isCurrent&&ti===0?'class="highlight"':''}>${t}</li>`).join('')}
-        </ul>
-      </div>
-    </div>`).join('');
+  var roadmapHtml = '';
+  for (var i=0; i<data.roadmap.length; i++) {
+    var phase = data.roadmap[i];
+    roadmapHtml += '<div class="roadmap-phase">';
+    roadmapHtml += '<div class="phase-timeline"><div class="phase-dot ' + (phase.isCurrent?'current':'') + '">' + (i+1) + '</div><div class="phase-line"></div></div>';
+    roadmapHtml += '<div class="phase-content"><div class="phase-period">' + phase.period + '</div><div class="phase-title ' + (phase.isCurrent?'current-title':'') + '">' + phase.title + '</div><ul class="phase-tasks">';
+    for (var ti=0; ti<phase.tasks.length; ti++) {
+      roadmapHtml += '<li ' + (phase.isCurrent&&ti===0?'class="highlight"':'') + '>' + phase.tasks[ti] + '</li>';
+    }
+    roadmapHtml += '</ul></div></div>';
+  }
 
-  document.getElementById('result').innerHTML = `
-    <div class="result-hero">
-      <div class="result-tag">DIAGNOSIS COMPLETE</div>
-      <h2><em>${data.concept_title}</em></h2>
-      <div class="result-tagline">${data.tagline}</div>
-    </div>
-    <div class="result-body">
-      <div class="result-section" id="rs1">
-        <div class="section-label">あなたの強み</div>
-        <div class="strength-cards">${strengthsHtml}</div>
-      </div>
-      <div class="result-section" id="rs2">
-        <div class="section-label">発信コンセプト</div>
-        <div class="concept-box">
-          <div class="concept-title">${data.concept_title}</div>
-          <div class="concept-desc">${data.concept_desc}</div>
-        </div>
-        <div class="niche-tags">${nicheHtml}</div>
-      </div>
-      <div class="result-section" id="rs3">
-        <div class="section-label">収益化ロードマップ</div>
-        <div class="roadmap">${roadmapHtml}</div>
-      </div>
-      <div class="result-section" id="rs4">
-        <div class="section-label">収益目標</div>
-        <div class="income-target">
-          <div>
-            <div class="income-label">6ヶ月後の目標月収</div>
-            <div class="income-amount" id="incomeDisplay">¥<span>0</span></div>
-            <div class="income-desc">${data.income_message}</div>
-          </div>
-          <div class="income-bar-section">
-            <div class="income-bar-label"><span>今</span><span>3ヶ月</span><span>6ヶ月</span></div>
-            <div class="income-bar"><div class="income-bar-fill" id="incomeFill"></div></div>
-            <div style="font-size:12px;color:rgba(245,240,232,.4);font-weight:300;">
-              3ヶ月後: ¥${income3.toLocaleString()}/月　→　6ヶ月後: ¥${income6.toLocaleString()}/月
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="share-section">
-      <div class="share-title">もう一度診断する</div>
-      <div class="share-sub">別の角度から強みを探したいときは</div>
-      <button class="btn-retry" onclick="location.reload()">最初からやり直す</button>
-</div>
-${data.prompts ? `<div class="prompts-section" style="margin:40px 0;padding:40px;background:#fff;border-radius:16px;">
-<h2 style="font-family:serif;font-size:1.4rem;margin-bottom:24px;">あなた専用プロンプト集</h2>
-${['niche_research','content_creation','monetization'].map(cat => {
-  const labels = {'niche_research':'ネタ探し','content_creation':'投稿作成','monetization':'収益化'};
-  return `<div style="margin-bottom:24px;"><h3 style="font-size:1rem;margin-bottom:12px;color:#c8402a;">${labels[cat]}</h3>
-  ${(data.prompts[cat]||[]).map(p=>`<div style="background:#f8f7f4;padding:16px;border-radius:8px;margin-bottom:8px;">
-  <div style="font-weight:bold;margin-bottom:8px;">${p.label}</div>
-  <div style="font-size:0.85rem;color:#555;margin-bottom:8px;">${p.text}</div>
-  <button onclick="navigator.clipboard.writeText('${p.text.replace(/'/g,"\\'")}')" style="background:#222;color:#fff;border:none;padding:6px 16px;border-radius:4px;cursor:pointer;font-size:0.8rem;">コピー</button>
-  </div>`).join('')}
-  </div>`;
-}).join('')}
-</div>` : ''}
-<div class="share-section">
+  var promptsHtml = '';
+  if (data.prompts) {
+    promptsHtml += '<div class="prompts-section"><div class="section-label">あなた専用プロンプト集</div>';
+    var catLabels = {niche_research:'ネタ探し', content_creation:'投稿作成', monetization:'収益化'};
+    var cats = ['niche_research','content_creation','monetization'];
+    for (var ci=0; ci<cats.length; ci++) {
+      var cat = cats[ci];
+      if (!data.prompts[cat]) continue;
+      promptsHtml += '<div class="prompts-category"><div class="prompts-category-title">' + catLabels[cat] + '</div>';
+      for (var pi=0; pi<data.prompts[cat].length; pi++) {
+        var p = data.prompts[cat][pi];
+        var keyName = 'promptText_' + cat + '_' + pi;
+        window[keyName] = p.text;
+        promptsHtml += '<div class="prompt-card"><div class="prompt-label">' + p.label + '</div><div class="prompt-text">' + p.text + '</div>';
+        promptsHtml += '<button class="btn-copy" id="btn_' + keyName + '" onclick="copyPrompt(\'' + keyName + '\')">コピー</button></div>';
+      }
+      promptsHtml += '</div>';
+    }
+    promptsHtml += '</div>';
+  }
+
+  document.getElementById('result').innerHTML =
+    '<div class="result-hero"><div class="result-tag">DIAGNOSIS COMPLETE</div><h2><em>' + data.concept_title + '</em></h2><div class="result-tagline">' + data.tagline + '</div></div>' +
+    '<div class="result-body">' +
+    '<div class="result-section" id="rs1"><div class="section-label">あなたの強み</div><div class="strength-cards">' + strengthsHtml + '</div></div>' +
+    '<div class="result-section" id="rs2"><div class="section-label">発信コンセプト</div><div class="concept-box"><div class="concept-title">' + data.concept_title + '</div><div class="concept-desc">' + data.concept_desc + '</div></div><div class="niche-tags">' + nicheHtml + '</div></div>' +
+    '<div class="result-section" id="rs3"><div class="section-label">収益化ロードマップ</div><div class="roadmap">' + roadmapHtml + '</div></div>' +
+    '<div class="result-section" id="rs4"><div class="section-label">収益目標</div><div class="income-target"><div><div class="income-label">6ヶ月後の目標月収</div><div class="income-amount" id="incomeDisplay">¥<span>0</span></div><div class="income-desc">' + data.income_message + '</div></div><div class="income-bar-section"><div class="income-bar-label"><span>今</span><span>3ヶ月</span><span>6ヶ月</span></div><div class="income-bar"><div class="income-bar-fill" id="incomeFill"></div></div><div style="font-size:12px;color:rgba(245,240,232,.4);font-weight:300;">3ヶ月後: ¥' + income3.toLocaleString() + '/月　→　6ヶ月後: ¥' + income6.toLocaleString() + '/月</div></div></div></div>' +
+    '</div>' +
+    promptsHtml +
+    '<div class="share-section"><div class="share-title">もう一度診断する</div><div class="share-sub">別の角度から強みを探したいときは</div><button class="btn-retry" onclick="location.reload()">最初からやり直す</button></div>';
 
   document.getElementById('result').style.display = 'block';
 
-  setTimeout(() => {
-    ['rs1','rs2','rs3','rs4'].forEach((id,i) => {
-      setTimeout(()=>{ const el=document.getElementById(id); if(el) el.classList.add('visible'); }, i*200);
-    });
-    setTimeout(()=>{
+  setTimeout(function() {
+    var ids = ['rs1','rs2','rs3','rs4'];
+    for (var i=0; i<ids.length; i++) {
+      (function(id, delay_ms) {
+        setTimeout(function(){ var el=document.getElementById(id); if(el) el.classList.add('visible'); }, delay_ms);
+      })(ids[i], i*200);
+    }
+    setTimeout(function(){
       document.getElementById('incomeFill').style.width = '100%';
       animateNumber('incomeDisplay', income6, '¥');
     }, 800);
   }, 100);
 }
 
+function copyPrompt(keyName) {
+  var text = window[keyName];
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(function() {
+    var btn = document.getElementById('btn_' + keyName);
+    if (btn) {
+      btn.textContent = 'コピーしました！';
+      btn.classList.add('copied');
+      setTimeout(function(){ btn.textContent='コピー'; btn.classList.remove('copied'); }, 2000);
+    }
+  });
+}
+
 function showErrorResult(msg) {
-  document.getElementById('result').innerHTML = `
-    <div style="max-width:640px;margin:60px auto;padding:24px;">
-      <div class="error-box">
-        AIとの通信でエラーが発生しました。<br>
-        ${msg||'しばらく待ってからもう一度お試しください。'}
-      </div>
-      <button onclick="location.reload()" style="background:var(--ink);color:var(--paper);border:none;padding:14px 32px;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;">
-        やり直す
-      </button>
-    </div>`;
+  document.getElementById('result').innerHTML =
+    '<div style="max-width:640px;margin:60px auto;padding:24px;">' +
+    '<div class="error-box">AIとの通信でエラーが発生しました。<br>' + (msg||'しばらく待ってからもう一度お試しください。') + '</div>' +
+    '<button onclick="location.reload()" style="background:var(--ink);color:var(--paper);border:none;padding:14px 32px;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;">やり直す</button>' +
+    '</div>';
   document.getElementById('result').style.display = 'block';
 }
 
-function animateNumber(elId, target, prefix='') {
-  const el = document.getElementById(elId);
+function animateNumber(elId, target, prefix) {
+  prefix = prefix || '';
+  var el = document.getElementById(elId);
   if (!el) return;
-  const duration = 2000;
-  const start = performance.now();
+  var duration = 2000;
+  var start = performance.now();
   function update(now) {
-    const p = Math.min((now-start)/duration,1);
-    const eased = 1-Math.pow(1-p,3);
-    el.innerHTML = `${prefix}<span>${Math.floor(eased*target).toLocaleString()}</span>`;
+    var p = Math.min((now-start)/duration,1);
+    var eased = 1-Math.pow(1-p,3);
+    el.innerHTML = prefix + '<span>' + Math.floor(eased*target).toLocaleString() + '</span>';
     if (p<1) requestAnimationFrame(update);
   }
   requestAnimationFrame(update);
 }
-
-function delay(ms) { return new Promise(r=>setTimeout(r,ms)); }
 </script>
 </body>
 </html>
