@@ -508,6 +508,12 @@ function selectChoice(qid, idx, multi) {
     if (pos > -1) answers[qid].splice(pos,1); else answers[qid].push(idx);
   } else { answers[qid] = idx; }
   showQuestion(currentStep);
+document.querySelectorAll('.choice-btn').forEach((btn, i) => {
+  const sel = answers[qid];
+  const isSelected = multi ? (sel && sel.includes(i)) : sel === i;
+  if (isSelected) btn.classList.add('selected');
+  else btn.classList.remove('selected');
+});
 }
 
 function updateSlider(qid, val) {
